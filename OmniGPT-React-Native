@@ -1,0 +1,95 @@
+import React, { useState } from 'react';
+import { SafeAreaView, Text, TextInput, TouchableOpacity, View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import axios from 'axios';
+
+export default function App() {
+  const [input, setInput] = useState('');
+  const [response, setResponse] = useState('How can I assist you today?');
+  const [loading, setLoading] = useState(false);
+
+  const askOmniGPT = async () => {
+    if (!input.trim()) return;
+    setLoading(true);
+    try {
+      const res = await axios.post('https://api.openai.com/v1/chat/completions', {
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: input }]
+      }, {
+        headers: {
+          'Authorization': `Bearer YOUR_OPENAI_API_KEY`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const answer = res.data.choices[0].message.content;
+      setResponse(answer);
+    } catch (error) {
+      setResponse('Error contacting AI assistant.');
+    }
+    setLoading(false);
+    setInput('');
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>OmniGPT Assistant</Text>
+      <TextInput
+        style={styles.input}
+        multiline
+        placeholder="Ask me anything..."
+        value={input}
+        onChangeText={setInput}
+      />
+      <TouchableOpacity style={styles.button} onPress={askOmniGPT} disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? 'Thinking...' : 'Ask OmniGPT'}</Text>
+      </TouchableOpacity>
+      <ScrollView style={styles.responseBox}>
+        {loading ? <ActivityIndicator size="large" color="#007AFF" /> : <Text style={styles.response}>{response}</Text>}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#111827',
+    padding: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginVertical: 20,
+  },
+  input: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 16,
+    minHeight: 80,
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    marginVertical: 12,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center'
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  responseBox: {
+    backgroundColor: '#1F2937',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    maxHeight: 300,
+  },
+  response: {
+    color: '#fff',
+    fontSize: 16,
+  }
+});
