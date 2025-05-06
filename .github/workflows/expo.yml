@@ -1,20 +1,20 @@
-// .github/workflows/expo.yml
-
-name: Build and Test OmniGPT Mobile App
+name: Build and Deploy OmniGPT Mobile App
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build:
-    name: Install and Test
+    name: Build with Expo EAS
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup Node.js
@@ -25,8 +25,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run tests (if any)
-        run: echo "No tests defined yet. Add tests for CI."
+      - name: Login to Expo
+        run: npx expo login --username ${{ secrets.EXPO_USERNAME }} --password ${{ secrets.EXPO_PASSWORD }}
 
-      - name: Expo publish check
-        run: npx expo install && npx expo doctor
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: EAS build Android and iOS
+        run: |
+          eas build --platform android --non-interactive
+          eas build --platform ios --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
